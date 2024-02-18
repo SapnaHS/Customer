@@ -8,6 +8,7 @@ import com.mobile.banking.Customer.exception.InsufficientFundsException;
 import com.mobile.banking.Customer.exception.OperationNotAllowedException;
 import com.mobile.banking.Customer.repository.CustomerRepository;
 import com.mobile.banking.Customer.repository.TransactionRepository;
+import com.mobile.banking.Customer.utility.CustomerUtility;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -23,6 +24,11 @@ public class TransactionService {
         try {
             Customer customer = customerRepository.findByAccountNumber(accountNumber)
                     .orElseThrow(() -> new AccountDoesNotExistException("This account does not exists"));
+
+            if(!CustomerUtility.getCustomerIdFromToken().equals(customer.getCustomerId())) {
+                throw new OperationNotAllowedException("You are not authorized to do this operation");
+            }
+
             customer.setAccountBalance(customer.getAccountBalance() + amount);
             customer = customerRepository.save(customer);
 
@@ -37,7 +43,7 @@ public class TransactionService {
             } else {
                 return new ResponseDTO("error", "Failed to deposit amount");
             }
-        } catch (AccountDoesNotExistException e) {
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
@@ -47,6 +53,9 @@ public class TransactionService {
         try {
             customer = customerRepository.findByAccountNumber(accountNumber)
                     .orElseThrow(() -> new AccountDoesNotExistException("This account does not exists"));
+            if(!CustomerUtility.getCustomerIdFromToken().equals(customer.getCustomerId())) {
+                throw new OperationNotAllowedException("You are not authorized to do this operation");
+            }
             if(!customer.getAccountType().equals("SAVINGS")) {
                 if(customer.getAccountBalance() < amount) {
                     throw new InsufficientFundsException("Insufficient funds to withdraw");
@@ -75,11 +84,15 @@ public class TransactionService {
     }
 
     public ResponseDTO transferFunds(String senderAccountNumber, String receiverAccountNumber, double amount) {
-        Customer senderCustomer = null;
-        Customer receiverCustomer = null;
+        Customer senderCustomer;
+        Customer receiverCustomer;
         try {
             senderCustomer = customerRepository.findByAccountNumber(senderAccountNumber)
                     .orElseThrow(() -> new AccountDoesNotExistException("This account does not exists"));
+
+            if(!CustomerUtility.getCustomerIdFromToken().equals(senderCustomer.getCustomerId())) {
+                throw new OperationNotAllowedException("You are not authorized to do this operation");
+            }
 
             receiverCustomer = customerRepository.findByAccountNumber(receiverAccountNumber)
                     .orElseThrow(() -> new AccountDoesNotExistException("This account does not exists"));

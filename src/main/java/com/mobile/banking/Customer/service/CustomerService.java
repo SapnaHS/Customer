@@ -1,7 +1,9 @@
 package com.mobile.banking.Customer.service;
 
 import com.mobile.banking.Customer.entity.Customer;
+import com.mobile.banking.Customer.exception.OperationNotAllowedException;
 import com.mobile.banking.Customer.repository.CustomerRepository;
+import com.mobile.banking.Customer.utility.CustomerUtility;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -12,7 +14,18 @@ public class CustomerService {
 
     @Autowired
     private CustomerRepository customerRepository;
+
     public List<Customer> getCustomerAccountsInfo(String customerId) {
-        return customerRepository.findByCustomerId(customerId);
+
+        try {
+            if (CustomerUtility.getCustomerIdFromToken().equals(customerId)) {
+                return customerRepository.findByCustomerId(customerId);
+            } else {
+                throw new OperationNotAllowedException("You cannot access this account");
+            }
+        } catch (OperationNotAllowedException e) {
+            throw new RuntimeException(e);
+        }
     }
+
 }
