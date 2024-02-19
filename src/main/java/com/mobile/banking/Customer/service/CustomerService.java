@@ -18,11 +18,10 @@ public class CustomerService {
     public List<Customer> getCustomerAccountsInfo(String customerId) {
 
         try {
-            if (CustomerUtility.getCustomerIdFromToken().equals(customerId)) {
-                return customerRepository.findByCustomerId(customerId);
-            } else {
+            if (!CustomerUtility.getCustomerIdFromToken().equals(customerId))
                 throw new OperationNotAllowedException("You cannot access this account");
-            }
+            return customerRepository.findByCustomerId(customerId);
+
         } catch (OperationNotAllowedException e) {
             throw new RuntimeException(e);
         }

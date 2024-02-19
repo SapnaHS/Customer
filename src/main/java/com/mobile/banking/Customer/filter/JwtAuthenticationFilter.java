@@ -1,5 +1,6 @@
 package com.mobile.banking.Customer.filter;
 
+import com.mobile.banking.Customer.exception.InvalidTokenException;
 import com.mobile.banking.Customer.service.JwtService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -39,10 +40,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 customerId = jwtService.extractCustomerId(token);
 
                 jwtService.validateToken(token);
-            } /*else {
+            } else {
                 throw new InvalidTokenException("Please provide authorization token");
 
-            }*/
+            }
             request.setAttribute("customerId", customerId);
             filterChain.doFilter(request, response);
         } catch (Exception e) {
