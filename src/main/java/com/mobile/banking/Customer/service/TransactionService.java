@@ -108,7 +108,7 @@ public class TransactionService {
                 }
 
                 if(senderCustomer.getAccountBalance() < amount) {
-                    throw new OperationNotAllowedException(ApplicationConstants.NOT_ALLOWED_OPERATION);
+                    throw new OperationNotAllowedException(ApplicationConstants.INSUFFICIENT_FUNDS);
                 }
 
                 withdrawAmount(senderAccountNumber, amount);
