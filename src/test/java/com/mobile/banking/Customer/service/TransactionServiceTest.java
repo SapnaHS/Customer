@@ -1,8 +1,8 @@
 package com.mobile.banking.Customer.service;
 
+import com.mobile.banking.Customer.constants.ApplicationConstants;
 import com.mobile.banking.Customer.dto.ResponseDTO;
 import com.mobile.banking.Customer.entity.Customer;
-import com.mobile.banking.Customer.exception.InsufficientFundsException;
 import com.mobile.banking.Customer.repository.CustomerRepository;
 import com.mobile.banking.Customer.repository.TransactionRepository;
 import com.mobile.banking.Customer.utility.CustomerUtility;
@@ -17,8 +17,6 @@ import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
-import java.util.Arrays;
-import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -65,7 +63,7 @@ public class TransactionServiceTest {
 
         ResponseDTO responseDTO = transactionService.depositAmount(accountNumber, amount);
 
-        assertEquals("success", responseDTO.getStatus());
+        assertEquals(ApplicationConstants.SUCCESS, responseDTO.getStatus());
         assertEquals("Deposit is successful", responseDTO.getMessage());
         assertEquals(5830.0, customer.getAccountBalance());
     }
@@ -104,7 +102,7 @@ public class TransactionServiceTest {
 
         ResponseDTO responseDTO = transactionService.withdrawAmount(accountNumber, amount);
 
-        assertEquals("success", responseDTO.getStatus());
+        assertEquals(ApplicationConstants.SUCCESS, responseDTO.getStatus());
         assertEquals("Withdrawal is successful", responseDTO.getMessage());
         assertEquals(5330.0, customer.getAccountBalance());
     }
@@ -126,7 +124,7 @@ public class TransactionServiceTest {
 
         ResponseDTO responseDTO = transactionService.withdrawAmount(accountNumber, amount);
 
-        assertEquals("success", responseDTO.getStatus());
+        assertEquals(ApplicationConstants.SUCCESS, responseDTO.getStatus());
         assertEquals("Withdrawal is successful", responseDTO.getMessage());
         assertEquals(5330.0, customer.getAccountBalance());
     }
