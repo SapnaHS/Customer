@@ -1,5 +1,7 @@
 package com.mobile.banking.Customer.service;
 
+import com.mobile.banking.Customer.constants.ApplicationConstants;
+import com.mobile.banking.Customer.constants.TransactionEnum;
 import com.mobile.banking.Customer.dto.ResponseDTO;
 import com.mobile.banking.Customer.entity.Customer;
 import com.mobile.banking.Customer.entity.CustomerTransaction;
@@ -9,6 +11,7 @@ import com.mobile.banking.Customer.exception.OperationNotAllowedException;
 import com.mobile.banking.Customer.repository.CustomerRepository;
 import com.mobile.banking.Customer.repository.TransactionRepository;
 import com.mobile.banking.Customer.utility.CustomerUtility;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -20,23 +23,21 @@ public class TransactionService {
 
     @Autowired
     TransactionRepository transactionRepository;
+
+    @Transactional
     public ResponseDTO depositAmount(String accountNumber, double amount) {
         try {
             Customer customer = customerRepository.findByAccountNumber(accountNumber)
-                    .orElseThrow(() -> new AccountDoesNotExistException("This account does not exists"));
+                    .orElseThrow(() -> new AccountDoesNotExistException(ApplicationConstants.ACCOUNT_NOT_EXISTS));
 
-            if(!CustomerUtility.getCustomerIdFromToken().equals(customer.getCustomerId())) {
-                throw new OperationNotAllowedException("You are not authorized to do this operation");
+            if (!CustomerUtility.getCustomerIdFromToken().equals(customer.getCustomerId())) {
+                throw new OperationNotAllowedException(ApplicationConstants.UNAUTHORIZED);
             }
 
             customer.setAccountBalance(customer.getAccountBalance() + amount);
             customer = customerRepository.save(customer);
 
-            CustomerTransaction customerTransaction = new CustomerTransaction();
-            customerTransaction.setAccountNumber(accountNumber);
-            customerTransaction.setAmount(amount);
-            customerTransaction.setTransactionType("DEPOSIT");
-            customerTransaction = transactionRepository.save(customerTransaction);
+            CustomerTransaction customerTransaction = getCustomerTransaction(accountNumber, amount, TransactionEnum.DEPOSIT.toString());
 
             if (customer != null && customerTransaction != null) {
                 return new ResponseDTO("success", "Deposit is successful");
@@ -48,34 +49,30 @@ public class TransactionService {
         }
     }
 
+    @Transactional
     public ResponseDTO withdrawAmount(String accountNumber, double amount) {
         Customer customer = null;
         try {
             customer = customerRepository.findByAccountNumber(accountNumber)
-                    .orElseThrow(() -> new AccountDoesNotExistException("This account does not exists"));
-            if(!CustomerUtility.getCustomerIdFromToken().equals(customer.getCustomerId())) {
-                throw new OperationNotAllowedException("You are not authorized to do this operation");
+                    .orElseThrow(() -> new AccountDoesNotExistException(ApplicationConstants.ACCOUNT_NOT_EXISTS));
+            if (!CustomerUtility.getCustomerIdFromToken().equals(customer.getCustomerId())) {
+                throw new OperationNotAllowedException(ApplicationConstants.UNAUTHORIZED);
             }
-            if(!customer.getAccountType().equals("SAVINGS")) {
-                if(customer.getAccountBalance() < amount) {
-                    throw new InsufficientFundsException("Insufficient funds to withdraw");
+            if (!customer.getAccountType().equals("SAVINGS")) {
+                if (customer.getAccountBalance() < amount) {
+                    throw new InsufficientFundsException(ApplicationConstants.INSUFFICIENT_FUNDS);
                 }
                 customer.setAccountBalance(customer.getAccountBalance() - amount);
                 customer = customerRepository.save(customer);
 
-                CustomerTransaction customerTransaction = new CustomerTransaction();
-                customerTransaction.setAccountNumber(accountNumber);
-                customerTransaction.setAmount(amount);
-                customerTransaction.setTransactionType("WITHDRAW");
-                customerTransaction = transactionRepository.save(customerTransaction);
+                CustomerTransaction customerTransaction = getCustomerTransaction(accountNumber, amount, TransactionEnum.WITHDRAW.toString());
 
-                if (customer != null && customerTransaction != null) {
+                if (customer != null && customerTransaction != null)
                     return new ResponseDTO("success", "Withdrawal is successful");
-                } else {
+                else
                     return new ResponseDTO("error", "Failed to withdraw amount");
-                }
             } else {
-                throw new OperationNotAllowedException("This operation is not allowed from SAVINGS account");
+                throw new OperationNotAllowedException(ApplicationConstants.NOT_ALLOWED_OPERATION);
             }
 
         } catch (Exception e) {
@@ -83,53 +80,58 @@ public class TransactionService {
         }
     }
 
+    @Transactional
     public ResponseDTO transferFunds(String senderAccountNumber, String receiverAccountNumber, double amount) {
         Customer senderCustomer;
         Customer receiverCustomer;
         try {
             senderCustomer = customerRepository.findByAccountNumber(senderAccountNumber)
-                    .orElseThrow(() -> new AccountDoesNotExistException("This account does not exists"));
-
-            if(!CustomerUtility.getCustomerIdFromToken().equals(senderCustomer.getCustomerId())) {
-                throw new OperationNotAllowedException("You are not authorized to do this operation");
-            }
+                    .orElseThrow(() -> new AccountDoesNotExistException(ApplicationConstants.ACCOUNT_NOT_EXISTS));
 
             receiverCustomer = customerRepository.findByAccountNumber(receiverAccountNumber)
-                    .orElseThrow(() -> new AccountDoesNotExistException("This account does not exists"));
+                    .orElseThrow(() -> new AccountDoesNotExistException(ApplicationConstants.ACCOUNT_NOT_EXISTS));
+
+            if (!CustomerUtility.getCustomerIdFromToken().equals(senderCustomer.getCustomerId())) {
+                throw new OperationNotAllowedException(ApplicationConstants.UNAUTHORIZED);
+            }
 
             if (!senderCustomer.getAccountType().equals("SAVINGS")) {
 
-                if(senderCustomer.getCustomerId().equals(receiverCustomer.getCustomerId())) {
+                if (senderCustomer.getCustomerId().equals(receiverCustomer.getCustomerId())) {
                     if (amount > 100000) {
-                        throw new OperationNotAllowedException("This operation is not allowed on this account");
+                        throw new OperationNotAllowedException(ApplicationConstants.NOT_ALLOWED_OPERATION);
                     }
                 } else {
-                        if(amount > 15000) {
-                            throw new OperationNotAllowedException("This operation is not allowed on this account");
-                        }
+                    if (amount > 15000) {
+                        throw new OperationNotAllowedException(ApplicationConstants.NOT_ALLOWED_OPERATION);
+                    }
                 }
 
                 withdrawAmount(senderAccountNumber, amount);
                 depositAmount(receiverAccountNumber, amount);
 
-                CustomerTransaction customerTransaction = new CustomerTransaction();
-                customerTransaction.setAccountNumber(senderAccountNumber);
-                customerTransaction.setAmount(amount);
-                customerTransaction.setTransactionType("TRANSFER");
-                customerTransaction = transactionRepository.save(customerTransaction);
+                CustomerTransaction customerTransaction = getCustomerTransaction(senderAccountNumber, amount, TransactionEnum.TRANSFER.toString());
 
-                if (customerTransaction != null) {
+                if (customerTransaction != null)
                     return new ResponseDTO("success", "Transfer of funds is successful");
-                } else {
+                else
                     return new ResponseDTO("error", "Transfer of funds failed");
-                }
 
             } else {
-                throw new OperationNotAllowedException("This operation is not allowed on this account");
+                throw new OperationNotAllowedException(ApplicationConstants.NOT_ALLOWED_OPERATION);
             }
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
 
+    }
+
+    private CustomerTransaction getCustomerTransaction(String accountNumber, double amount, String transactionType) {
+        CustomerTransaction customerTransaction = new CustomerTransaction();
+        customerTransaction.setAccountNumber(accountNumber);
+        customerTransaction.setAmount(amount);
+        customerTransaction.setTransactionType(transactionType);
+        customerTransaction = transactionRepository.save(customerTransaction);
+        return customerTransaction;
     }
 }
