@@ -30,9 +30,6 @@ public class TransactionServiceTest {
     @Mock
     private CustomerRepository customerRepository;
 
-    @Mock
-    private TransactionRepository transactionRepository;
-
     @InjectMocks
     private TransactionService transactionService;
 
@@ -108,24 +105,33 @@ public class TransactionServiceTest {
     }
 
     @Test
-    void testWithdrawAmount_TransferFunds() {
-        String accountNumber = "123456";
+    void testTransferFunds() {
+        String senderAccountNumber = "123456";
+        String receiverAccountNumber = "34827";
         double amount = 44670.00;
         String customerId = "238897";
-        Customer customer = new Customer();
-        customer.setCustomerId(customerId);
-        customer.setAccountType("REGULAR");
-        customer.setAccountNumber(accountNumber);
-        customer.setAccountBalance(50000.0);
+        Customer senderCustomer = new Customer();
+        senderCustomer.setCustomerId(customerId);
+        senderCustomer.setAccountType("REGULAR");
+        senderCustomer.setAccountNumber(senderAccountNumber);
+        senderCustomer.setAccountBalance(50000.0);
 
-        when(customerRepository.findByAccountNumber(accountNumber)).thenReturn(Optional.of(customer));
+        Customer receiverCustomer = new Customer();
+        receiverCustomer.setCustomerId(customerId);
+        receiverCustomer.setAccountType("REGULAR");
+        receiverCustomer.setAccountNumber(senderAccountNumber);
+        receiverCustomer.setAccountBalance(10000.0);
+
+        when(customerRepository.findByAccountNumber(senderAccountNumber)).thenReturn(Optional.of(senderCustomer));
+        when(customerRepository.findByAccountNumber(receiverAccountNumber)).thenReturn(Optional.of(receiverCustomer));
         when(CustomerUtility.getCustomerIdFromToken()).thenReturn(customerId);
-        when(customerRepository.save(customer)).thenReturn(customer);
+        when(customerRepository.save(senderCustomer)).thenReturn(senderCustomer);
+        when(customerRepository.save(receiverCustomer)).thenReturn(receiverCustomer);
 
-        ResponseDTO responseDTO = transactionService.withdrawAmount(accountNumber, amount);
+        ResponseDTO responseDTO = transactionService.transferFunds(senderAccountNumber, receiverAccountNumber, amount);
 
         assertEquals(ApplicationConstants.SUCCESS, responseDTO.getStatus());
-        assertEquals("Withdrawal is successful", responseDTO.getMessage());
-        assertEquals(5330.0, customer.getAccountBalance());
+        assertEquals("Transfer of funds is successful", responseDTO.getMessage());
+        assertEquals(5330.0, senderCustomer.getAccountBalance());
     }
 }

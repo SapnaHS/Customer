@@ -21,7 +21,8 @@ public class TransactionController {
     @PostMapping("/{accountNumber}/withdraw")
     public ResponseDTO withdrawAmount(@PathVariable String accountNumber, @RequestParam double amount) {
 
-        return transactionService.withdrawAmount(accountNumber, amount);
+            return transactionService.withdrawAmount(accountNumber, amount);
+
     }
 
     @PostMapping("/transfer")

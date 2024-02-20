@@ -40,7 +40,7 @@ public class TransactionService {
 
             return new ResponseDTO(ApplicationConstants.SUCCESS, "Deposit is successful");
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Error in transaction : " + e);
         }
     }
 
@@ -67,7 +67,7 @@ public class TransactionService {
             }
 
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Error in transaction : " + e);
         }
     }
 
@@ -111,7 +111,7 @@ public class TransactionService {
                 throw new OperationNotAllowedException(ApplicationConstants.NOT_ALLOWED_OPERATION);
             }
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Error in transaction : " + e);
         }
 
     }
