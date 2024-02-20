@@ -98,13 +98,17 @@ public class TransactionService {
             if (!senderCustomer.getAccountType().equals("SAVINGS")) {
 
                 if (senderCustomer.getCustomerId().equals(receiverCustomer.getCustomerId())) {
-                    if (amount > 100000 || senderCustomer.getAccountBalance() < amount) {
+                    if (amount > 100000) {
                         throw new OperationNotAllowedException(ApplicationConstants.NOT_ALLOWED_OPERATION);
                     }
                 } else {
                     if (amount > 15000 || senderCustomer.getAccountBalance() < amount) {
                         throw new OperationNotAllowedException(ApplicationConstants.NOT_ALLOWED_OPERATION);
                     }
+                }
+
+                if(senderCustomer.getAccountBalance() < amount) {
+                    throw new OperationNotAllowedException(ApplicationConstants.NOT_ALLOWED_OPERATION);
                 }
 
                 withdrawAmount(senderAccountNumber, amount);
