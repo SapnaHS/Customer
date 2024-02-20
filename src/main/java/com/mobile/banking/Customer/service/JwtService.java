@@ -46,10 +46,6 @@ public class JwtService {
         return extractClaims(token, Claims::getExpiration);
     }
 
-    public void validateToken(final String token){
-        Jwts.parser().verifyWith((SecretKey) getSignKey()).build().parseSignedClaims(token);
-    }
-
     private Key getSignKey() {
         byte[] keyBytes = Decoders.BASE64.decode(SECRET);
         return Keys.hmacShaKeyFor(keyBytes);
