@@ -27,10 +27,6 @@ public class CustomerServiceTest {
     @Mock
     private CustomerRepository customerRepository;
 
-
-    @Mock
-    private CustomerUtility customerUtility;
-
     @InjectMocks
     private CustomerService customerService;
 
