@@ -30,6 +30,9 @@ public class TransactionServiceTest {
     @Mock
     private CustomerRepository customerRepository;
 
+    @Mock
+    private TransactionRepository transactionRepository;
+
     @InjectMocks
     private TransactionService transactionService;
 
