@@ -1,0 +1,154 @@
+openapi: 3.0.1
+info:
+  title: OpenAPI definition
+  version: v0
+servers:
+- url: http://localhost:8080
+  description: Generated server url
+paths:
+  /transaction/{accountNumber}/withdraw:
+    post:
+      tags:
+      - transaction-controller
+      operationId: withdrawAmount
+      parameters:
+      - name: accountNumber
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: amount
+        in: query
+        required: true
+        schema:
+          type: number
+          format: double
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ResponseDTO'
+  /transaction/{accountNumber}/deposit:
+    post:
+      tags:
+      - transaction-controller
+      operationId: depositAmount
+      parameters:
+      - name: accountNumber
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: amount
+        in: query
+        required: true
+        schema:
+          type: number
+          format: double
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ResponseDTO'
+  /transaction/transfer:
+    post:
+      tags:
+      - transaction-controller
+      operationId: transferFunds
+      parameters:
+      - name: fromAccountId
+        in: query
+        required: true
+        schema:
+          type: string
+      - name: toAccountId
+        in: query
+        required: true
+        schema:
+          type: string
+      - name: amount
+        in: query
+        required: true
+        schema:
+          type: number
+          format: double
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ResponseDTO'
+  /authenticate:
+    post:
+      tags:
+      - customer-controller
+      operationId: authenticateUser
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthDTO'
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: string
+  /customer/{customerId}:
+    get:
+      tags:
+      - customer-controller
+      operationId: getCustomerAccountsInfo
+      parameters:
+      - name: customerId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Customer'
+components:
+  schemas:
+    ResponseDTO:
+      type: object
+      properties:
+        status:
+          type: string
+        message:
+          type: string
+    AuthDTO:
+      type: object
+      properties:
+        customerId:
+          type: string
+        password:
+          type: string
+    Customer:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        customerId:
+          type: string
+        accountType:
+          type: string
+        accountBalance:
+          type: number
+          format: double
+        accountNumber:
+          type: string
